@@ -5,7 +5,7 @@ __number_to_onoff () {
 }
 
 __send_cmd () {
-  echo "$3" | nc -w 5 -N "$1" "$2"
+  echo "$3" | nc -w 3 -q 1 "$1" "$2"
   return $?
 }
 
