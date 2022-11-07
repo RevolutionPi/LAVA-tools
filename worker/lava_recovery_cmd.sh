@@ -22,8 +22,10 @@ PORT=$2
 POWER_RELAIS=$3
 USB_RELAIS=$4
 USB_LOC=$5
-USBPORT=${USB_LOC##*.}
 CMD=$(echo "$6" | awk '{print tolower ($0)}')
+
+USBPORT=${USB_LOC##*.}
+USB_LOC_BASE=${USB_LOC%.*}
 
 RPIBOOT=$(which rpiboot)
 UHUBCTL=$(which uhubctl)
@@ -48,7 +50,7 @@ recovery_start() {
   echoinfo "Start Recovery"
         
   rc_set_relais "$IPADDR" "$PORT" "$POWER_RELAIS" 0
-  "$UHUBCTL" -l "$USB_LOC" -p "$USBPORT" -a on
+  "$UHUBCTL" -l "$USB_LOC_BASE" -p "$USBPORT" -a on
   rc_set_relais "$IPADDR" "$PORT" "$USB_RELAIS" 1
   sleep 0.5
 
@@ -92,7 +94,7 @@ recovery_exit() {
     echo "Stop Recovery"
 
     rc_set_relais "$IPADDR" "$PORT" "$POWER_RELAIS" 0
-    "$UHUBCTL" -l "$USB_LOC" -p "$USBPORT" -a off
+    "$UHUBCTL" -l "$USB_LOC_BASE" -p "$USBPORT" -a off
     rc_set_relais "$IPADDR" "$PORT" 2 0
     sleep 0.5
 
