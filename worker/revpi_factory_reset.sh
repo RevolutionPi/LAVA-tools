@@ -5,6 +5,9 @@ DEVICE_TYPE=$2
 DEVICE_SERIAL=$3
 DEVICE_MAC=$4
 
+DEFAULT_USER=pi
+DEFAULT_PASS=raspberry
+
 echo "$SSH_HOST_RPI"
 echo "$DEVICE_TYPE"
 echo "$DEVICE_SERIAL"
@@ -19,8 +22,12 @@ done
 sleep 2
 
 # now do the factory reset on the DuT and reboot it afterwards
-ssh -i /sshkey/lava_worker_ed25519 -o PasswordAuthentication=no -o StrictHostKeyChecking=no root@"$SSH_HOST_RPI" /usr/sbin/revpi-factory-reset "$DEVICE_TYPE" "$DEVICE_SERIAL" "$DEVICE_MAC"
-ssh -i /sshkey/lava_worker_ed25519 -o PasswordAuthentication=no -o StrictHostKeyChecking=no root@"$SSH_HOST_RPI" reboot
+cat >/tmp/lava-key.pub <<EOX
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTBh7TFMbVgVDALMMg4VWRO/lnlxy0h4SLlmBxo11PR Lava worker to DuT key
+EOX
+
+sshpass -p "$DEFAULT_PASS" ssh-copy-id -i /tmp/lava-key.pub "$DEFAULT_USER"@"$SSH_HOST_RPI"
+sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" /usr/sbin/revpi-factory-reset "$DEVICE_TYPE" "$DEVICE_SERIAL" "$DEVICE_MAC" && sudo reboot
 
 exit 0
 
