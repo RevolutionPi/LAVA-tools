@@ -25,7 +25,7 @@ USB_LOC=$5
 CMD=$(echo "$6" | awk '{print tolower ($0)}')
 
 USBPORT=${USB_LOC##*.}
-USB_LOC_BASE=${USB_LOC%.*}
+USB_LOC_BASE=${USB_LOC%%.*}
 
 RPIBOOT=$(which rpiboot)
 UHUBCTL=$(which uhubctl)

@@ -18,8 +18,8 @@ while ! ping -c 1 "$SSH_HOST_RPI" > /dev/null 2>&1; do
 	sleep 1; 
 done
 
-# let us wait for another 2 seconds
-sleep 2
+# let us wait for another 10 seconds
+sleep 10
 
 # now do the factory reset on the DuT and reboot it afterwards
 cat >/tmp/lava-key.pub <<EOX
