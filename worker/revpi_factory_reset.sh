@@ -26,8 +26,10 @@ cat >/tmp/lava-key.pub <<EOX
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTBh7TFMbVgVDALMMg4VWRO/lnlxy0h4SLlmBxo11PR Lava worker to DuT key
 EOX
 
-sshpass -p "$DEFAULT_PASS" ssh-copy-id -i /tmp/lava-key.pub "$DEFAULT_USER"@"$SSH_HOST_RPI"
-sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" /usr/sbin/revpi-factory-reset "$DEVICE_TYPE" "$DEVICE_SERIAL" "$DEVICE_MAC" && sudo reboot
+ssh-keygen -f "/root/.ssh/known_hosts" -R "$SSH_HOST_RPI"
+sshpass -p "$DEFAULT_PASS" ssh-copy-id -o "StrictHostKeyChecking=no" -f -i /tmp/lava-key.pub "$DEFAULT_USER"@"$SSH_HOST_RPI"
+sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo cp -r /home/pi/.ssh /root"
+sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo chown -R root: /root/.ssh"
+sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo /usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\" && sudo reboot"
 
 exit 0
-
