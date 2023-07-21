@@ -95,7 +95,7 @@ recovery_exit() {
 
     rc_set_relais "$IPADDR" "$PORT" "$POWER_RELAIS" 0
     "$UHUBCTL" -l "$USB_LOC_BASE" -p "$USBPORT" -a off
-    rc_set_relais "$IPADDR" "$PORT" 2 0
+    rc_set_relais "$IPADDR" "$PORT" "$USB_RELAIS" 0
     sleep 0.5
 
     rc_set_relais "$IPADDR" "$PORT" "$POWER_RELAIS" 1
