@@ -3,7 +3,7 @@
 if [[ $# -ne 6 ]]; then
   echo "help: $0 <Relaiscard-IP> <Relaiscard-Port> <Power-Relais-No> <USB-Relais-No> <USB-Location> <on|off>"
   echo "    example: $0 192.168.10.1 12345 1 2 2-1.1 on"
-  exit
+  exit 1
 fi
 
 # shellcheck disable=SC2005
@@ -32,18 +32,18 @@ UHUBCTL=$(which uhubctl)
 
 if [ ! -x "$RPIBOOT" ]; then
     echoerr "rpiboot missing on this system, please install"
-    exit
+    exit 1
 fi
 
 if [ ! -x "$UHUBCTL" ]; then
     echoerr "uhubctl missing on this system, please install"
-    exit
+    exit 1
 fi
 
 echoinfo "check for availability of relais card"
 if ! rc_get_status "$IPADDR" "$PORT"; then
   echoerr "relais card not reachable, stopping script"
-  exit
+  exit 1
 fi
 
 recovery_start() {
@@ -69,7 +69,7 @@ recovery_start() {
 
   if [ ! -b "/dev/$usb_disk" ]; then
     echoerr "no storage device found for USB device $USB_LOC"
-    exit
+    exit 1
   fi
 
   echoinfo "RPi mass storage added as /dev/$usb_disk"
@@ -83,7 +83,7 @@ recovery_start() {
   # file). We exit for now, if we have more than one running container.
   if [ ${#containers[@]} != 1 ]; then
   	echoerr "no or too many running LXC containers found, aborting"
-	  exit
+	  exit 1
   fi
 
   echoinfo "Container found (${containers[0]}), adding blockdevice /dev/$usb_disk to container"
@@ -105,6 +105,6 @@ recovery_exit() {
 case "$CMD" in
     on) recovery_start ;;
     off) recovery_exit ;;
-    *) echo "only on and off are supported as parameter for recovery mode" && exit ;;
+    *) echo "only on and off are supported as parameter for recovery mode" && exit 1 ;;
 esac
 
