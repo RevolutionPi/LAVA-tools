@@ -22,12 +22,9 @@ done
 sleep 2
 
 # now do the factory reset on the DuT and reboot it afterwards
-cat >/tmp/lava-key.pub <<EOX
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTBh7TFMbVgVDALMMg4VWRO/lnlxy0h4SLlmBxo11PR Lava worker to DuT key
-EOX
 
 ssh-keygen -f "/root/.ssh/known_hosts" -R "$SSH_HOST_RPI"
-sshpass -p "$DEFAULT_PASS" ssh-copy-id -o "StrictHostKeyChecking=no" -f -i /tmp/lava-key.pub "$DEFAULT_USER"@"$SSH_HOST_RPI"
+sshpass -p "$DEFAULT_PASS" ssh-copy-id -o "StrictHostKeyChecking=no" -f -i /sshkey/lava_worker_ed25519.pub "$DEFAULT_USER"@"$SSH_HOST_RPI"
 sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo cp -r /home/pi/.ssh /root"
 sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo chown -R root: /root/.ssh"
 sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo /usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\" && sudo reboot"
