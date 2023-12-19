@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# Wait for the target to be down
+wait_for_reboot() {
+    if [ -z "$1" ]; then
+        echo "Error: No IP address or target provided."
+        exit 1
+    fi
+
+    while ping -c 1 "$1" > /dev/null 2>&1; do 
+	    sleep 1; 
+    done
+}
+
+# wait for target to fully reboot
+wait_for_system_up() {
+    if [ -z "$1" ]; then
+        echo "Error: No IP address or target provided."
+        exit 1
+    fi
+
+    while ! ping -c 1 "$1" > /dev/null 2>&1; do 
+	    sleep 1; 
+    done
+}
+
+# Check if a function is provided as the first argument
+if [ -n "$1" ] && type "$1" >/dev/null 2>&1; then
+    # Call the specified function with the provided argument
+    "$1" "$2"
+else
+    echo "Error: Function '$1' not found."
+    exit 1
+fi
