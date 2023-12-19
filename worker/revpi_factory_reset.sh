@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2005
+absdirname () { echo "$(cd "$(dirname "$1")" && pwd)"; }
+SRC_ROOT="$(absdirname "${BASH_SOURCE[0]}")"
+
 SSH_HOST_RPI=$1
 DEVICE_TYPE=$2
 DEVICE_SERIAL=$3
@@ -14,9 +18,7 @@ echo "$DEVICE_SERIAL"
 echo "$DEVICE_MAC"
 
 # wait for the device to fully reboot
-while ! ping -c 1 "$SSH_HOST_RPI" > /dev/null 2>&1; do 
-	sleep 1; 
-done
+"$SRC_ROOT/lib/utils" wait_for_system_up "$SSH_HOST_RPI"
 
 # let us wait for another 2 seconds
 sleep 2
