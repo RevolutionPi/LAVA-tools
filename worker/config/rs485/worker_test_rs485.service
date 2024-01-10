@@ -1,0 +1,12 @@
+[Unit]
+Description=RS485 Daemon for LAVA-Test
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/share/revpi/rs485.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
