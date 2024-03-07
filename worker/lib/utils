@@ -1,4 +1,5 @@
 #!/bin/sh
+BT_DISCOVERY_TIMEOUT=120
 
 # Wait for the target to be down
 wait_for_reboot() {
@@ -22,6 +23,18 @@ wait_for_system_up() {
     while ! ping -c 1 "$1" > /dev/null 2>&1; do 
 	    sleep 1; 
     done
+}
+
+bluetooth_control() {
+    # shellcheck disable=SC3043
+    local param="$1"
+    if [ -z "${param}" ]; then
+        echo "Error: parameter for bluetoothctl not provided."
+        exit 1
+    fi
+    bluetoothctl discoverable-timeout "${BT_DISCOVERY_TIMEOUT}"
+    bluetoothctl pairable "${param}"
+    bluetoothctl discoverable "${param}"
 }
 
 # Check if a function is provided as the first argument
