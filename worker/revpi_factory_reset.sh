@@ -20,8 +20,8 @@ echo "$DEVICE_MAC"
 # wait for the device to fully reboot
 "$SRC_ROOT/lib/utils" wait_for_system_up "$SSH_HOST_RPI"
 
-# let us wait for another 2 seconds
-sleep 2
+# let us wait for 20 seconds
+sleep 20
 
 # now do the factory reset on the DuT and reboot it afterwards
 
