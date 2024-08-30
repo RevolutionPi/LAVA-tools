@@ -9,3 +9,5 @@ include:
     file: "/check-commit/lint-commit.yml"
   - project: "revolutionpi/infrastructure/ci-templates"
     file: "/shell-lint.yml"
+  - project: "revolutionpi/infrastructure/ci-templates"
+    file: "reuse-lint.yml"
