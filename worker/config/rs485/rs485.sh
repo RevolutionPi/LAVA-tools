@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2024 KUNBUS GmbH
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 RSDEV="/dev/ttyRS485"
 RSBAUD="19200"
 SLEEP_TIME="0.3"

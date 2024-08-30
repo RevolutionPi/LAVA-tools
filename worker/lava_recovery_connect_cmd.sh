@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2022-2023 KUNBUS GmbH
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 TIME_SLEEP_RELAY_ON=1
 TIME_SLEEP_RELAY_OFF=5
 TIME_SLEEP_WAIT_RPIBOOT=5

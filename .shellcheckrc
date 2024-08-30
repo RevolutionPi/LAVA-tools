@@ -1,2 +1,6 @@
+# SPDX-FileCopyrightText: 2024 KUNBUS GmbH
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 disable=SC3043
 disable=SC1091

@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: LAVA-tools
+Upstream-Contact: KUNBUS GmbH <support@kunbus.com>
+Source: https://gitlab.com/revolutionpi/infrastructure/testing/LAVA-tools
+
+Files: worker/config/*.rsc
+Copyright: 2023 KUNBUS GmbH
+License: GPL-2.0-or-later

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2022 KUNBUS GmbH
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 __number_to_onoff () {
   [ "$1" -eq 0 ] && echo "off" || echo "on"
 }

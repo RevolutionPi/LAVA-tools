@@ -1,4 +1,9 @@
 #!/bin/sh
+
+# SPDX-FileCopyrightText: 2023-2024 KUNBUS GmbH
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 BT_DISCOVERY_TIMEOUT=120
 
 # Wait for the target to be down

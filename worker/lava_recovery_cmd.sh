@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2022-2023 KUNBUS GmbH
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 if [[ $# -ne 6 ]]; then
   echo "help: $0 <Relaiscard-IP> <Relaiscard-Port> <Power-Relais-No> <USB-Relais-No> <USB-Location> <on|off>"
   echo "    example: $0 192.168.10.1 12345 1 2 2-1.1 on"

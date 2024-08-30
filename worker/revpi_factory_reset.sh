@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2022-2024 KUNBUS GmbH
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # shellcheck disable=SC2005
 absdirname () { echo "$(cd "$(dirname "$1")" && pwd)"; }
 SRC_ROOT="$(absdirname "${BASH_SOURCE[0]}")"
