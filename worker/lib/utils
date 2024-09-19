@@ -30,6 +30,22 @@ wait_for_system_up() {
     done
 }
 
+# wait for the SSH service to be available
+wait_for_ssh() {
+    if [ -z "$1" ]; then
+	    echo "Error: No IP address or target provided."
+	    exit 1
+    fi
+
+    while ! ssh -o ConnectTimeout=5 \
+                -o BatchMode=yes \
+                -o StrictHostKeyChecking=no \
+                "$1" exit > /dev/null 2>&1; do
+        sleep 1
+    done
+}
+
+
 bluetooth_control() {
     # shellcheck disable=SC3043
     local param="$1"
