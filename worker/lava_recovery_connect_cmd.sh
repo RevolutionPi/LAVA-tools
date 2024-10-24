@@ -25,31 +25,101 @@ SRC_ROOT="$(absdirname "${BASH_SOURCE[0]}")"
 # shellcheck disable=SC1091
 . "$SRC_ROOT/tools/echohelper.sh"
 
+get_revpi_type() {
+  grep -zm1 'kunbus,revpi-' /proc/device-tree/compatible | tr -d '\0' | cut -d',' -f2
+}
+
+get_relay_var() {
+  local revpi_type="$1"
+  case "$revpi_type" in
+  revpi-connect4)
+    echo "RevPiOutput"
+    ;;
+  revpi-connect*)
+    echo "RevPiLED"
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+
+  return 0
+}
+
+get_relay_bit() {
+  local revpi_type="$1"
+  case "$revpi_type" in
+  revpi-connect4)
+    echo 0
+    ;;
+  revpi-connect*)
+    echo 6
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+
+  return 0
+}
 
 revpi_unset_relay() {
+  local revpi_type="$1"
+  local relay_var="$2"
+  local relay_bit="$3"
+  local relay_val
   # Read value
-  RevPiLED_VAL=$(piTest -1 -q -r RevPiLED)
-  # Set bit 6 (bit 6 -> Relay output)
-  RevPiLED_VAL=$((RevPiLED_VAL | (1 << 6)))
-  piTest -w RevPiLED,$RevPiLED_VAL
+  relay_val=$(piTest -1 -q -r "$relay_var")
+  if [ "$revpi_type" = "revpi-connect4" ]; then
+    # For RevPi Connect4, clear the specified bit (set to 0)
+    relay_val=$((relay_val & ~(1 << relay_bit)))
+  else
+    # For standard RevPi Connect, set the specified bit (set to 1)
+    relay_val=$((relay_val | (1 << relay_bit)))
+  fi
+  piTest -w "$relay_var","$relay_val"
 }
 
 revpi_set_relay() {
+  local revpi_type="$1"
+  local relay_var="$2"
+  local relay_bit="$3"
+  local relay_val
   # Read value
-  RevPiLED_VAL=$(piTest -1 -q -r RevPiLED)
-  # Clear bit 6 (bit 6 -> Relay output)
-  RevPiLED_VAL=$((RevPiLED_VAL & (0 << 6)))
-  piTest -w RevPiLED,$RevPiLED_VAL
+  relay_val=$(piTest -1 -q -r "$relay_var")
+  if [ "$revpi_type" = "revpi-connect4" ]; then
+    # For RevPi Connect4, set the specified bit (set to 1)
+    relay_val=$((relay_val | (1 << relay_bit)))
+  else
+    # For standard RevPi Connect, clear the specified bit (set to 0)
+    relay_val=$((relay_val & ~(1 << relay_bit)))
+  fi
+  
+  piTest -w "$relay_var","$relay_val"
 }
 
 uhubctl_cmd() {
-  action="$1"
+  local action="$1"
+  local revpi_type
+  local relay_var
+  local relay_bit
+  revpi_type=$(get_revpi_type)
+  relay_var=$(get_relay_var "$revpi_type")
+  relay_var_rc=$?
+  relay_bit=$(get_relay_bit "$revpi_type")
+  relay_bit_rc=$?
+
+  if [ "$relay_var_rc" -ne 0 ] || [ "$relay_bit_rc" -ne 0 ]; then
+    printf "Don't know how to control power with '%s'\n" "$revpi_type" >&2
+    exit 1
+  fi
+
   echoinfo "Executing uhubctl command: $action"
-  revpi_unset_relay
+  revpi_unset_relay "$revpi_type" "$relay_var" "$relay_bit"
   sleep "$TIME_SLEEP_RELAY_OFF"
   "$UHUBCTL" -l "$USB_LOC_BASE" -p "$USBPORT" -a "$action"
   sleep "$TIME_SLEEP_RELAY_OFF"
-  revpi_set_relay
+  revpi_set_relay "$revpi_type" "$relay_var" "$relay_bit"
   sleep "$TIME_SLEEP_RELAY_ON"
 }
 
