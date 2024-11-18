@@ -136,9 +136,20 @@ recovery_start() {
   "$RPIBOOT" -p "$USB_LOC" -d "/usr/local/share/rpiboot/mass-storage-gadget64"
 
   # wait with sleep for the RPi mass storage device
-  sleep "$TIME_SLEEP_WAIT_RPIBOOT"
+  MAX_WAIT=60
+  elapsed=0
 
-  usb_disk=$(find /sys/devices -iname "${USB_LOC:?}" -exec find {} -iname block -print0 \; 2>/dev/null | xargs -0 ls)
+  while [ $elapsed -lt $MAX_WAIT ]; do
+    usb_disk=$(find /sys/devices -iname "${USB_LOC:?}" -exec find {} -iname block -print0 \; 2>/dev/null | xargs -0 ls)
+    
+    if [ -b "/dev/$usb_disk" ]; then
+      echoinfo "Storage device found: /dev/$usb_disk"
+      break
+    fi
+
+    sleep "$TIME_SLEEP_WAIT_RPIBOOT"
+    elapsed=$((elapsed + TIME_SLEEP_WAIT_RPIBOOT))
+  done
 
   if [ ! -b "/dev/$usb_disk" ]; then
     echoerr "no storage device found for USB device $USB_LOC"
