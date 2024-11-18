@@ -140,9 +140,8 @@ recovery_start() {
   elapsed=0
 
   while [ $elapsed -lt $MAX_WAIT ]; do
-    usb_disk=$(find /sys/devices -iname "${USB_LOC:?}" -exec find {} -iname block -print0 \; 2>/dev/null | xargs -0 ls)
-    
-    if [ -b "/dev/$usb_disk" ]; then
+    if [ -b "/dev/blockDUT" ]; then
+      usb_disk="blockDUT"
       echoinfo "Storage device found: /dev/$usb_disk"
       break
     fi
@@ -151,8 +150,8 @@ recovery_start() {
     elapsed=$((elapsed + TIME_SLEEP_WAIT_RPIBOOT))
   done
 
-  if [ ! -b "/dev/$usb_disk" ]; then
-    echoerr "no storage device found for USB device $USB_LOC"
+  if [ ! -b "/dev/blockDUT" ]; then
+    echoerr "No storage device found for symlink /dev/blockDUT"
     exit 1
   fi
 
