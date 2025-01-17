@@ -132,6 +132,9 @@ recovery_start() {
 
   # ToDo: check if USB device is available on USB_LOC before using it
 
+  if [[ "$USB_LOC_BASE" =~ ^[0-9]+$ ]]; then
+    USB_LOC="${USB_LOC_BASE}-${USBPORT}"
+  fi
   echoinfo "Starting rpiboot on device $USB_LOC"
   "$RPIBOOT" -p "$USB_LOC" -d "/usr/local/share/rpiboot/mass-storage-gadget64"
 
