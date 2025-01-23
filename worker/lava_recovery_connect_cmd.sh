@@ -121,6 +121,9 @@ uhubctl_cmd() {
   if [ "$revpi_type" = "revpi-connect" ]; then
     "$UHUBCTL" -l "$USB_LOC_BASE" -p "$((USBPORT + 1))" -a "$action"
   fi
+  if [ "$revpi_type" = "revpi-connect4" ]; then
+    "$UHUBCTL" -e -l "$((USB_LOC_BASE + 1))" -p "$USBPORT" -a "$action"
+  fi
   sleep "$TIME_SLEEP_RELAY_OFF"
   revpi_set_relay "$revpi_type" "$relay_var" "$relay_bit"
   sleep "$TIME_SLEEP_RELAY_ON"
