@@ -29,7 +29,9 @@ echo "$DEVICE_MAC"
 # wait for the device to fully reboot
 "$SRC_ROOT/lib/utils" wait_for_system_up "$SSH_HOST_RPI"
 
-# let us wait for 20 seconds
+# Waiting is required because the system does some things on first boot like
+# resizing the rootfs or generating the ssh keys, which takes some time. Also
+# give some time for the system to settle.
 sleep 20
 
 # now do the factory reset on the DuT and reboot it afterwards
