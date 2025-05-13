@@ -21,10 +21,10 @@ DEFAULT_USER=pi
 DEFAULT_PASS=raspberry
 DEFAULT_SSH_ARGS="-o StrictHostKeyChecking=no"
 
-echo "$SSH_HOST_RPI"
-echo "$DEVICE_TYPE"
-echo "$DEVICE_SERIAL"
-echo "$DEVICE_MAC"
+echo "Remote host: $SSH_HOST_RPI"
+echo "Device type: $DEVICE_TYPE"
+echo "Device serial: $DEVICE_SERIAL"
+echo "Device mac: $DEVICE_MAC"
 
 # wait for the device to fully reboot
 "$SRC_ROOT/lib/utils" wait_for_system_up "$SSH_HOST_RPI"
