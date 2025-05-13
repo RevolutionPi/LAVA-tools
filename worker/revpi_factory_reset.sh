@@ -5,6 +5,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set -e
+HOME="$(getent passwd "$(id -un)" | cut -d: -f6)"
+export HOME
 
 # shellcheck disable=SC2005
 absdirname () { echo "$(cd "$(dirname "$1")" && pwd)"; }
