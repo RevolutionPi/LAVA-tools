@@ -103,6 +103,7 @@ uhubctl_cmd() {
   local revpi_type
   local relay_var
   local relay_bit
+  local usb_loc_base
   revpi_type=$(get_revpi_type)
   relay_var=$(get_relay_var "$revpi_type")
   relay_var_rc=$?
@@ -122,7 +123,13 @@ uhubctl_cmd() {
     "$UHUBCTL" -l "$USB_LOC_BASE" -p "$((USBPORT + 1))" -a "$action"
   fi
   if [ "$revpi_type" = "revpi-connect4" ]; then
-    "$UHUBCTL" -e -l "$((USB_LOC_BASE + 1))" -p "$USBPORT" -a "$action"
+    if [[ "$USB_LOC_BASE" =~ ^[0-9]+$ ]]; then
+      usb_loc_base=$((USB_LOC_BASE + 1))
+    else
+      usb_loc_base="$USB_LOC_BASE"
+    fi
+
+    "$UHUBCTL" -e -l "$usb_loc_base" -p "$USBPORT" -a "$action"
   fi
   sleep "$TIME_SLEEP_RELAY_OFF"
   revpi_set_relay "$revpi_type" "$relay_var" "$relay_bit"
