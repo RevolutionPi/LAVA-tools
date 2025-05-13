@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-# SPDX-FileCopyrightText: 2022-2024 KUNBUS GmbH
+# SPDX-FileCopyrightText: 2022-2025 KUNBUS GmbH
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
+
+set -e
 
 # shellcheck disable=SC2005
 absdirname () { echo "$(cd "$(dirname "$1")" && pwd)"; }
