@@ -31,7 +31,9 @@ sleep 20
 
 # now do the factory reset on the DuT and reboot it afterwards
 
-ssh-keygen -f "/root/.ssh/known_hosts" -R "$SSH_HOST_RPI"
+if [ -f /root/.ssh/known_hosts ]; then
+	ssh-keygen -f "/root/.ssh/known_hosts" -R "$SSH_HOST_RPI"
+fi
 sshpass -p "$DEFAULT_PASS" ssh-copy-id -o "StrictHostKeyChecking=no" -f -i /sshkey/lava_worker_ed25519.pub "$DEFAULT_USER"@"$SSH_HOST_RPI"
 sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo cp -r /home/pi/.ssh /root"
 sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo chown -R root: /root/.ssh"
