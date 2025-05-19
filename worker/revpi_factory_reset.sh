@@ -40,7 +40,18 @@ sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH
 sshpass -p "$DEFAULT_PASS" ssh-copy-id -o "StrictHostKeyChecking=no" -f -i /sshkey/lava_worker_ed25519.pub "$DEFAULT_USER"@"$SSH_HOST_RPI"
 sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo cp -r /home/pi/.ssh /root"
 sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo chown -R root: /root/.ssh"
-sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo /usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\" && sudo reboot"
+sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo /usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\""
+# manually verify the return code here instead of letting "set -e" fail on any code > 0
+sshpass -p "$DEFAULT_PASS" ssh -o StrictHostKeyChecking=no "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo reboot" || rc=$? && rc=0
+if [ "$rc" -eq 255 ]; then
+	# if the reboot is immediately in progress instead of waiting for a second,
+	# ssh will return 255 as the exit code. this is okay and shouldn't lead to
+	# the script failing
+	:
+elif [ "$rc" -gt 0 ]; then
+	printf "Error while calling 'reboot' on DUT\n" >&2
+	exit 1
+fi
 
 # give the DUT time to initiate the reboot as it doesn't necessarily happen *instantly*
 sleep 10
