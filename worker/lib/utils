@@ -37,11 +37,13 @@ wait_for_ssh() {
 	    exit 1
     fi
 
+    retry_timeout=10
+    echo "Retrying for SSH every $retry_timeout seconds"
     while ! ssh -o ConnectTimeout=5 \
                 -o BatchMode=yes \
                 -o StrictHostKeyChecking=no \
-                "$1" exit > /dev/null 2>&1; do
-        sleep 1
+                "$1" exit; do
+        sleep "$retry_timeout"
     done
 }
 
