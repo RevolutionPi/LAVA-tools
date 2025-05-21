@@ -20,6 +20,7 @@ DEVICE_MAC=$4
 DEFAULT_USER=pi
 DEFAULT_PASS=raspberry
 DEFAULT_SSH_ARGS="-o StrictHostKeyChecking=no"
+SSH_REMOTE="$DEFAULT_USER@$SSH_HOST_RPI"
 
 echo "Remote host: $SSH_HOST_RPI"
 echo "Device type: $DEVICE_TYPE"
@@ -40,18 +41,18 @@ if [ -f ~/.ssh/known_hosts ]; then
 	ssh-keygen -f ~/.ssh/known_hosts -R "$SSH_HOST_RPI"
 fi
 # shellcheck disable=SC2086
-sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$DEFAULT_USER"@"$SSH_HOST_RPI" "if [ ! -d ~/.ssh ]; then ( umask 077 && mkdir ~/.ssh ); fi"
+sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "if [ ! -d ~/.ssh ]; then ( umask 077 && mkdir ~/.ssh ); fi"
 # shellcheck disable=SC2086
-sshpass -p "$DEFAULT_PASS" ssh-copy-id $DEFAULT_SSH_ARGS -f -i /sshkey/lava_worker_ed25519.pub "$DEFAULT_USER"@"$SSH_HOST_RPI"
+sshpass -p "$DEFAULT_PASS" ssh-copy-id $DEFAULT_SSH_ARGS -f -i /sshkey/lava_worker_ed25519.pub "$SSH_REMOTE"
 # shellcheck disable=SC2086
-sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo cp -r /home/pi/.ssh /root"
+sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "sudo cp -r /home/pi/.ssh /root"
 # shellcheck disable=SC2086
-sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo chown -R root: /root/.ssh"
+sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "sudo chown -R root: /root/.ssh"
 # shellcheck disable=SC2086
-sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo /usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\""
+sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "sudo /usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\""
 # manually verify the return code here instead of letting "set -e" fail on any code > 0
 # shellcheck disable=SC2086
-sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$DEFAULT_USER"@"$SSH_HOST_RPI" "sudo reboot" || rc=$? && rc=0
+sshpass -p "$DEFAULT_PASS" ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "sudo reboot" || rc=$? && rc=0
 if [ "$rc" -eq 255 ]; then
 	# if the reboot is immediately in progress instead of waiting for a second,
 	# ssh will return 255 as the exit code. this is okay and shouldn't lead to
