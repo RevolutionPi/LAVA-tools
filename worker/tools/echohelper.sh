@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 echoinfo () {
-  printf "\e[32mINFO:\e[0m  %s\n" "$*" >&2;
+  printf "\e[32mINFO:\e[0m  %s\n" "$*";
 }
 
 echoerr () { 
