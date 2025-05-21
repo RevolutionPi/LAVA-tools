@@ -27,16 +27,16 @@ echo "Device type: $DEVICE_TYPE"
 echo "Device serial: $DEVICE_SERIAL"
 echo "Device mac: $DEVICE_MAC"
 
-# wait for the device to fully reboot
+echo "Waiting for device to be reachable..."
 "$SRC_ROOT/lib/utils" wait_for_system_up "$SSH_HOST_RPI"
 
 # Waiting is required because the system does some things on first boot like
 # resizing the rootfs or generating the ssh keys, which takes some time. Also
 # give some time for the system to settle.
+echo "Device online. Waiting 20 seconds to finish first boot before setting up ssh"
 sleep 20
 
 # now do the factory reset on the DuT and reboot it afterwards
-
 if [ -f ~/.ssh/known_hosts ]; then
 	ssh-keygen -f ~/.ssh/known_hosts -R "$SSH_HOST_RPI"
 fi
@@ -46,6 +46,7 @@ sshpass -p "$DEFAULT_PASS" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" \
 	"if [ ! -d ~/.ssh ]; then ( umask 077 && mkdir ~/.ssh ); fi"
 
+echo "Copying ssh key to DUT"
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
 	ssh-copy-id $DEFAULT_SSH_ARGS \
@@ -58,10 +59,14 @@ sshpass -p "$DEFAULT_PASS" \
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "sudo chown -R root: /root/.ssh"
+
+echo "Running factory reset"
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" \
 		"sudo /usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\""
+
+echo "Rebooting the device"
 # manually verify the return code here instead of letting "set -e" fail on any code > 0
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
