@@ -55,29 +55,24 @@ sshpass -p "$DEFAULT_PASS" \
 		"$SSH_REMOTE"
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
-	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "sudo cp -r /home/pi/.ssh /root"
+	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "echo '$DEFAULT_PASS' | sudo -kS cp -r /home/pi/.ssh /root"
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
-	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "sudo chown -R root: /root/.ssh"
+	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "echo '$DEFAULT_PASS' | sudo -kS chown -R root: /root/.ssh"
 
-echo "Running factory reset"
+echo "Running factory reset and rebooting the device"
+rc=0
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" \
-		"sudo /usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\""
-
-echo "Rebooting the device"
-# manually verify the return code here instead of letting "set -e" fail on any code > 0
-# shellcheck disable=SC2086
-sshpass -p "$DEFAULT_PASS" \
-	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "sudo reboot" || rc=$? && rc=0
+	"echo '$DEFAULT_PASS' | sudo -kS sh -c '/usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\" && reboot'" || rc=$?
 if [ "$rc" -eq 255 ]; then
 	# if the reboot is immediately in progress instead of waiting for a second,
 	# ssh will return 255 as the exit code. this is okay and shouldn't lead to
 	# the script failing
 	:
-elif [ "$rc" -gt 0 ]; then
-	printf "Error while calling 'reboot' on DUT\n" >&2
+elif [ "$rc" -ne 0 ]; then
+	printf "Error while calling 'factory-reset and reboot' on DUT (rc=%s)\n" "$rc" >&2
 	exit 1
 fi
 
