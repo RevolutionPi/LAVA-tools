@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# SPDX-FileCopyrightText: 2023-2024 KUNBUS GmbH
+# SPDX-FileCopyrightText: 2023-2026 KUNBUS GmbH
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -42,6 +42,7 @@ wait_for_ssh() {
     while ! ssh -o ConnectTimeout=5 \
                 -o BatchMode=yes \
                 -o StrictHostKeyChecking=no \
+                -o UserKnownHostsFile=/dev/null \
                 "$1" exit; do
         sleep "$retry_timeout"
     done
