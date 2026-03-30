@@ -18,7 +18,9 @@ DEVICE_SERIAL=$3
 DEVICE_MAC=$4
 
 DEFAULT_USER=pi
-DEFAULT_PASS=raspberry
+DEFAULT_PASS_BOOKWORM=raspberry
+DEFAULT_PASS_TRIXIE=revolutionpi
+DEFAULT_PASS=
 DEFAULT_SSH_ARGS="-o StrictHostKeyChecking=no"
 SSH_REMOTE="$DEFAULT_USER@$SSH_HOST_RPI"
 
@@ -39,6 +41,21 @@ sleep 20
 # now do the factory reset on the DuT and reboot it afterwards
 if [ -f ~/.ssh/known_hosts ]; then
 	ssh-keygen -f ~/.ssh/known_hosts -R "$SSH_HOST_RPI"
+fi
+
+# default password changed with trixie. determine which password is correct by
+# trying to log in
+# NOTE: a maximum of 3 login attempts can be made!
+# shellcheck disable=SC2086
+if sshpass -p "$DEFAULT_PASS_TRIXIE" \
+	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" true; then
+	DEFAULT_PASS="$DEFAULT_PASS_TRIXIE"
+elif sshpass -p "$DEFAULT_PASS_BOOKWORM" \
+	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" true; then
+	DEFAULT_PASS="$DEFAULT_PASS_BOOKWORM"
+else
+	echo "Can't determine default password to use for login" >&2
+	exit 1
 fi
 
 # shellcheck disable=SC2086
