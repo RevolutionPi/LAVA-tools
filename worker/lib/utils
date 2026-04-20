@@ -14,7 +14,7 @@ wait_for_reboot() {
     fi
 
     while ping -c 1 "$1" > /dev/null 2>&1; do 
-	    sleep 1; 
+        sleep 1;
     done
 }
 
@@ -26,15 +26,15 @@ wait_for_system_up() {
     fi
 
     while ! ping -c 1 "$1" > /dev/null 2>&1; do 
-	    sleep 1; 
+        sleep 1;
     done
 }
 
 # wait for the SSH service to be available
 wait_for_ssh() {
     if [ -z "$1" ]; then
-	    echo "Error: No IP address or target provided."
-	    exit 1
+        echo "Error: No IP address or target provided."
+        exit 1
     fi
 
     retry_timeout=10
