@@ -16,6 +16,7 @@ SSH_HOST_RPI=$1
 DEVICE_TYPE=$2
 DEVICE_SERIAL=$3
 DEVICE_MAC=$4
+DEVICE_PASS=$5
 
 DEFAULT_USER=pi
 DEFAULT_PASS_BOOKWORM=raspberry
@@ -44,7 +45,7 @@ if [ -f ~/.ssh/known_hosts ]; then
 fi
 
 # default password changed with trixie. determine which password is correct by
-# trying to log in
+# trying to log in. if no default password works, fall back to DEVICE_PASS
 # NOTE: a maximum of 3 login attempts can be made!
 # shellcheck disable=SC2086
 if sshpass -p "$DEFAULT_PASS_TRIXIE" \
@@ -53,6 +54,9 @@ if sshpass -p "$DEFAULT_PASS_TRIXIE" \
 elif sshpass -p "$DEFAULT_PASS_BOOKWORM" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" true; then
 	DEFAULT_PASS="$DEFAULT_PASS_BOOKWORM"
+elif [ -n "$DEVICE_PASS" ] && sshpass -p "$DEVICE_PASS" \
+	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" true; then
+	DEFAULT_PASS="$DEVICE_PASS"
 else
 	echo "Can't determine default password to use for login" >&2
 	exit 1
@@ -77,19 +81,20 @@ sshpass -p "$DEFAULT_PASS" \
 sshpass -p "$DEFAULT_PASS" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "echo '$DEFAULT_PASS' | sudo -kS chown -R root: /root/.ssh"
 
-echo "Running factory reset and rebooting the device"
+REMOTE_CMD="/usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\" && reboot"
+
 rc=0
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" \
-	"echo '$DEFAULT_PASS' | sudo -kS sh -c '/usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\" && reboot'" || rc=$?
+	"echo '$DEFAULT_PASS' | sudo -kS sh -c '$REMOTE_CMD'" || rc=$?
 if [ "$rc" -eq 255 ]; then
 	# if the reboot is immediately in progress instead of waiting for a second,
 	# ssh will return 255 as the exit code. this is okay and shouldn't lead to
 	# the script failing
 	:
 elif [ "$rc" -ne 0 ]; then
-	printf "Error while calling 'factory-reset and reboot' on DUT (rc=%s)\n" "$rc" >&2
+	printf "Error while running remote command on DUT (rc=%s)\n" "$rc" >&2
 	exit 1
 fi
 
