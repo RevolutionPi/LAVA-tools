@@ -146,7 +146,7 @@ recovery_start() {
     USB_LOC="${USB_LOC_BASE}-${USBPORT}"
   fi
   echoinfo "Starting rpiboot on device $USB_LOC"
-  "$RPIBOOT" -p "$USB_LOC" -d "/usr/local/share/rpiboot/mass-storage-gadget64"
+  "$RPIBOOT" -p "$USB_LOC" -d "/usr/share/rpiboot/mass-storage-gadget64"
 
   # wait with sleep for the RPi mass storage device
   MAX_WAIT=60
