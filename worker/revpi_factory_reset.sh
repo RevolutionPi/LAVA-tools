@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# SPDX-FileCopyrightText: 2022-2025 KUNBUS GmbH
+# SPDX-FileCopyrightText: 2022-2026 KUNBUS GmbH
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,6 +24,16 @@ DEFAULT_PASS_TRIXIE=revolutionpi
 DEFAULT_PASS=
 DEFAULT_SSH_ARGS="-o StrictHostKeyChecking=no"
 SSH_REMOTE="$DEFAULT_USER@$SSH_HOST_RPI"
+# only DUTs without a HAT EEPROM need a reboot
+REBOOT_DUT=false
+
+# Check existence of a HAT EEPROM on the DUT
+has_hat_eeprom() {
+	# shellcheck disable=SC2086
+	sshpass -p "$DEFAULT_PASS" \
+		ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" \
+		"[ -e /proc/device-tree/hat/custom_1 ]"
+}
 
 echo "Remote host: $SSH_HOST_RPI"
 echo "Device type: $DEVICE_TYPE"
@@ -81,14 +91,21 @@ sshpass -p "$DEFAULT_PASS" \
 sshpass -p "$DEFAULT_PASS" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" "echo '$DEFAULT_PASS' | sudo -kS chown -R root: /root/.ssh"
 
-REMOTE_CMD="/usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\" && reboot"
+REMOTE_CMD="/usr/sbin/revpi-factory-reset \"$DEVICE_TYPE\" \"$DEVICE_SERIAL\" \"$DEVICE_MAC\""
+
+# On devices with a HAT EEPROM the reboot can be skipped to shorten the test time.
+if ! has_hat_eeprom; then
+	echo "DUT has no HAT EEPROM. Rebooting after factory reset"
+	REBOOT_DUT=true
+	REMOTE_CMD="$REMOTE_CMD && reboot"
+fi
 
 rc=0
 # shellcheck disable=SC2086
 sshpass -p "$DEFAULT_PASS" \
 	ssh $DEFAULT_SSH_ARGS "$SSH_REMOTE" \
 	"echo '$DEFAULT_PASS' | sudo -kS sh -c '$REMOTE_CMD'" || rc=$?
-if [ "$rc" -eq 255 ]; then
+if [ "$rc" -eq 255 ] && [ "$REBOOT_DUT" = true ]; then
 	# if the reboot is immediately in progress instead of waiting for a second,
 	# ssh will return 255 as the exit code. this is okay and shouldn't lead to
 	# the script failing
@@ -99,6 +116,8 @@ elif [ "$rc" -ne 0 ]; then
 fi
 
 # give the DUT time to initiate the reboot as it doesn't necessarily happen *instantly*
-sleep 10
+if [ "$REBOOT_DUT" = true ]; then
+	sleep 10
+fi
 
 exit 0
