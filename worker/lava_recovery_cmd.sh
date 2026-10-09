@@ -77,21 +77,6 @@ recovery_start() {
   fi
 
   echoinfo "RPi mass storage added as /dev/$usb_disk"
-  echoinfo "Looking for a running container"
-
-  # now get this device into the container, get containers,  one per line and only running ones
-  IFS=$'\n' read -r -d '' -a containers < <( lxc-ls -1 --running --filter 'lxc\-[a-zA-Z]*\-[0-9]*')
-
-  # If there is more than one running container, we don't know which container we
-  # can or should use (ToDo: check if LAVA can substitute the JOB_ID in a jinja2
-  # file). We exit for now, if we have more than one running container.
-  if [ ${#containers[@]} != 1 ]; then
-  	echoerr "no or too many running LXC containers found, aborting"
-	  exit 1
-  fi
-
-  echoinfo "Container found (${containers[0]}), adding blockdevice /dev/$usb_disk to container"
-  lxc-device -n "${containers[0]}" add /dev/"$usb_disk"
 }
 
 recovery_exit() {
