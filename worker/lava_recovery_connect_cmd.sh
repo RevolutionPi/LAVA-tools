@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 
-# SPDX-FileCopyrightText: 2022-2023 KUNBUS GmbH
+# SPDX-FileCopyrightText: 2022-2026 KUNBUS GmbH
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 TIME_SLEEP_RELAY_ON=1
 TIME_SLEEP_RELAY_OFF=5
-TIME_SLEEP_WAIT_RPIBOOT=5
+TIME_WAIT_RPIBOOT=30
+TIME_WAIT_BLOCKDUT=30
+BLOCKDUT="/dev/blockDUT"
+MAX_RECOVERY_ATTEMPTS=3
 
 USB_LOC=$1
 CMD=$(echo "$2" | awk '{print tolower ($0)}')
@@ -136,39 +139,48 @@ uhubctl_cmd() {
   sleep "$TIME_SLEEP_RELAY_ON"
 }
 
-recovery_start() {
-  echoinfo "Start Recovery"
-  uhubctl_cmd "on"
+wait_for_blockdut() {
+  local elapsed=0
 
-  # ToDo: check if USB device is available on USB_LOC before using it
+  while [ "$elapsed" -lt "$TIME_WAIT_BLOCKDUT" ]; do
+    if [ -b "$BLOCKDUT" ]; then
+      return 0
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+
+  return 1
+}
+
+recovery_start() {
+  local attempt
 
   if [[ "$USB_LOC_BASE" =~ ^[0-9]+$ ]]; then
     USB_LOC="${USB_LOC_BASE}-${USBPORT}"
   fi
-  echoinfo "Starting rpiboot on device $USB_LOC"
-  "$RPIBOOT" -p "$USB_LOC" -d "/usr/share/rpiboot/mass-storage-gadget64"
 
-  # wait with sleep for the RPi mass storage device
-  MAX_WAIT=60
-  elapsed=0
+  for attempt in $(seq "$MAX_RECOVERY_ATTEMPTS"); do
+    echoinfo "Start Recovery (attempt $attempt of $MAX_RECOVERY_ATTEMPTS)"
+    uhubctl_cmd "on"
 
-  while [ $elapsed -lt $MAX_WAIT ]; do
-    if [ -b "/dev/blockDUT" ]; then
-      usb_disk="blockDUT"
-      echoinfo "Storage device found: /dev/$usb_disk"
-      break
+    echoinfo "Starting rpiboot on device $USB_LOC"
+    if ! timeout "$TIME_WAIT_RPIBOOT" "$RPIBOOT" -p "$USB_LOC" \
+      -d "/usr/share/rpiboot/mass-storage-gadget64"; then
+      echoerr "rpiboot failed or did not finish within ${TIME_WAIT_RPIBOOT}s"
+      continue
     fi
 
-    sleep "$TIME_SLEEP_WAIT_RPIBOOT"
-    elapsed=$((elapsed + TIME_SLEEP_WAIT_RPIBOOT))
+    if wait_for_blockdut; then
+      echoinfo "RPi mass storage added as $BLOCKDUT"
+      return 0
+    fi
+
+    echoerr "$BLOCKDUT not found within ${TIME_WAIT_BLOCKDUT}s"
   done
 
-  if [ ! -b "/dev/blockDUT" ]; then
-    echoerr "No storage device found for symlink /dev/blockDUT"
-    exit 1
-  fi
-
-  echoinfo "RPi mass storage added as /dev/$usb_disk"
+  echoerr "No storage device found for symlink $BLOCKDUT"
+  exit 1
 }
 
 recovery_exit() {
